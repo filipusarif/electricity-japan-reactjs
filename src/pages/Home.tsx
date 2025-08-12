@@ -1,68 +1,20 @@
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { wilayahBesar, mapping } from "../constants/regions";
+import { style, getFeatureCenter } from "../utils/mapUtils";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import MapAnimation from "../components/organism/MapAnimation";
+import SaveMapInstance from "../components/atoms/saveMapsInstance";
+import Tooltip from "../components/atoms/tooltip";
+import Modal from "../components/molecules/modal";
+import MapEventHandler from "../components/atoms/mapEventHandler";
 
 export default function Home() {
   const [geoData, setGeoData] = useState<any>(null);
-
-  const wilayahBesar = [
-    "Hokkaidō",
-    "Tohoku",
-    "Tokyo",
-    "Chubu",
-    "Hokuriku",
-    "Kansai",
-    "Chugoku",
-    "Shikoku",
-    "Kyusyu",
-    "Okinawa"
-  ];
-
-  // Mapping prefektur → wilayah besar
-  const mapping: Record<string, string> = {
-    "Hokkaidō": "Hokkaidō",
-    "Aomori": "Tohoku",
-    "Iwate": "Tohoku",
-    "Miyagi": "Tohoku",
-    "Akita": "Tohoku",
-    "Yamagata": "Tohoku",
-    "Fukushima": "Tohoku",
-    "Tokyo": "Tokyo",
-    "Chiba": "Tokyo",
-    "Kanagawa": "Tokyo",
-    "Saitama": "Tokyo",
-    "Yamanashi": "Chubu",
-    "Nagano": "Chubu",
-    "Shizuoka": "Chubu",
-    "Aichi": "Chubu",
-    "Toyama": "Hokuriku",
-    "Ishikawa": "Hokuriku",
-    "Fukui": "Hokuriku",
-    "Osaka": "Kansai",
-    "Kyoto": "Kansai",
-    "Hyogo": "Kansai",
-    "Nara": "Kansai",
-    "Wakayama": "Kansai",
-    "Shiga": "Kansai",
-    "Hiroshima": "Chugoku",
-    "Okayama": "Chugoku",
-    "Yamaguchi": "Chugoku",
-    "Shimane": "Chugoku",
-    "Tottori": "Chugoku",
-    "Kagawa": "Shikoku",
-    "Tokushima": "Shikoku",
-    "Ehime": "Shikoku",
-    "Kochi": "Shikoku",
-    "Fukuoka": "Kyusyu",
-    "Saga": "Kyusyu",
-    "Nagasaki": "Kyusyu",
-    "Kumamoto": "Kyusyu",
-    "Oita": "Kyusyu",
-    "Miyazaki": "Kyusyu",
-    "Kagoshima": "Kyusyu",
-    "Okinawa": "Okinawa"
-  };
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<any | null>(null);
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     fetch("/jp.json")
@@ -78,60 +30,81 @@ export default function Home() {
       });
   }, []);
 
-    const colors = [
-    "#FF0000", // merah
-    "#00FF00", // hijau neon
-    "#0000FF", // biru
-    "#FFFF00", // kuning
-    "#FF00FF", // magenta
-    "#00FFFF", // cyan
-    "#FFA500", // oranye
-    "#800080", // ungu
-    "#00FF7F", // hijau terang
-    "#FF1493"  // pink
-    ];
-
-    const style = (feature: any) => {
-    const wilayah = mapping[feature.properties.name];
-    const index = wilayahBesar.indexOf(wilayah);
-    return {
-        fillColor: colors[index % colors.length],
-        weight: 1,
-        opacity: 1,
-        color: "#8e8e8e",
-        dashArray: "1",
-        fillOpacity: 0.7 
-    };
-    };
-
+    
 
   const onEachFeature = (feature: any, layer: any) => {
-    const wilayah = mapping[feature.properties.name];
-    layer.bindPopup(
-      `<strong>${wilayah}</strong><br>${feature.properties.name}`
-    );
+    layer.on({
+      mouseover: (e: any) => {
+        setHoveredRegion(feature.properties.name);
+
+        const map = e.target._map;
+        const center = getFeatureCenter(feature);
+        const point = map.latLngToContainerPoint(center);
+        setHoverPos({ x: point.x, y: point.y });
+
+        e.target.setStyle({
+          weight: 3,
+          color: "#666",
+          fillOpacity: 0.9,
+        });
+      },
+      mouseout: (e: any) => {
+        setHoveredRegion(null);
+        setHoverPos(null);
+        geoData && layer.resetStyle(e.target);
+      },
+      click: (e: any) => {
+        setSelectedRegion(feature);
+
+        const map = e.target._map;
+        const center = getFeatureCenter(feature);
+
+        map.flyTo([center.lat, center.lng], 7, { duration: 1.5 });
+
+        const point = map.latLngToContainerPoint(center);
+        setPopupPosition({ x: point.x, y: point.y });
+      }
+    });
   };
 
   return (
-    <div style={{ height: "100vh", width: "100vw" }}>
+    <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
+      {/* Map container */}
       <MapContainer
         center={[36.2048, 138.2529]}
         zoom={5}
         style={{ height: "100%", width: "100%" }}
       >
-        <MapAnimation />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+          attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {geoData && (
-          <GeoJSON
-            data={geoData}
-            style={style}
-            onEachFeature={onEachFeature}
-          />
-        )}
+        {geoData && <GeoJSON data={geoData} style={feature => style(feature, mapping, wilayahBesar)} onEachFeature={onEachFeature} />}
+        <SaveMapInstance />
+        <MapEventHandler
+          selectedRegion={selectedRegion}
+          hoveredRegion={hoveredRegion}
+          geoData={geoData}
+          setPopupPosition={setPopupPosition}
+          setHoverPos={setHoverPos}
+        />
+        <MapAnimation />
       </MapContainer>
+
+      {/* Tooltip hover */}
+      {hoveredRegion && hoverPos && (
+        <Tooltip hoveredRegion={hoveredRegion} hoverPos={hoverPos} mapping={mapping} />
+      )}
+
+      {/* Popup modal */}
+      {selectedRegion && popupPosition && (
+        <Modal
+          selectedRegion={selectedRegion}
+          setSelectedRegion={setSelectedRegion}
+          popupPosition={popupPosition}
+          mapping={mapping}
+        />
+      )}
     </div>
   );
 }

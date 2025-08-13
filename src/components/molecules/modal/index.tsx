@@ -135,11 +135,12 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
 
     return (
     <div
-    style={{
-    top: popupPosition.y,
-    left: popupPosition.x,
-    }}
-    className="absolute flex flex-col w-[30vw] h-[75vh] transform translate-x-[10px] -translate-y-[50%] bg-white/60 backdrop-blur-md border border-gray-300 rounded-lg shadow-lg z-500"
+    style={
+        window.innerWidth < 768
+        ? { top: "50%", left: "50%", transform: "translate(-50%, -50%)" }
+        : { top: popupPosition.y, left: popupPosition.x }
+    }
+    className={`${window.innerWidth < 768 ? "fixed" : "absolute"} absolute flex flex-col w-[90%] md:w-[30vw] min-h-[50vh] transform md:translate-x-[10px] md:-translate-y-[50%] bg-white/60 backdrop-blur-md border border-gray-300 rounded-lg shadow-lg z-500`}
     >
 
         {/* loading */}

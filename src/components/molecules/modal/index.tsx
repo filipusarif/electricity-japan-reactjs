@@ -127,8 +127,6 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
         } finally {
             setLoading(false);
         }
-
-        // setSelectedRegion(null);
     }
 
     const handleBack = () => {
@@ -144,7 +142,7 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
     className="absolute flex flex-col w-[30vw] h-[75vh] transform translate-x-[10px] -translate-y-[50%] bg-white/60 backdrop-blur-md border border-gray-300 rounded-lg shadow-lg z-500"
     >
 
-        {/* === Overlay Loading === */}
+        {/* loading */}
         {loading && (
         <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
             <svg
@@ -171,7 +169,7 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
         )}
         
 
-        {/* HEADER */}
+        {/* header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-300 text-slate-800">
         <div>
             <h4>{mapping[selectedRegion.properties.name]}</h4>
@@ -191,14 +189,15 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
         </div>
         )}
 
-        {/* SCROLLABLE CONTENT */}
+        {/* content */}
         <div className="flex-1 overflow-y-auto p-4 text-slate-800">
+        {/* input section */}
         {section === 0 && (
             <form
             onSubmit={handleSubmit}
             className="flex flex-col gap-3"
             >
-            {/* Pilih sector */}
+            {/* sector */}
             <div className="flex gap-3">
                 <button
                 type="button"
@@ -216,7 +215,6 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
                 </button>
             </div>
 
-            {/* Input fields */}
             {[
                 { label: "Year", name: "year" },
                 { label: "Nominal Price", name: "nominalPrice" },
@@ -242,6 +240,7 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
             </form>
         )}
 
+        {/* result section */}
         {section === 1 && prediction && (
             <div className="flex flex-col gap-4">
                 <div>
@@ -282,7 +281,7 @@ export default function Modal({ selectedRegion, setSelectedRegion, popupPosition
         )}
         </div>
 
-        {/* FOOTER FIXED */}
+        {/* footer */}
         <div className="p-4 border-t border-gray-300">
         {section === 0 ? (
             <button

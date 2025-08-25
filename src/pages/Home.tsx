@@ -35,10 +35,6 @@ export default function Home() {
           )
         };
         setGeoData(filtered);
-
-        setTimeout(() => {
-          // 
-        }, 2000);
       });
   }, []);
 
@@ -129,6 +125,7 @@ export default function Home() {
 
 
   return (
+
     <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
       <div className="absolute top-[10px] md:top-[20px] md:left-[20px] z-500 flex gap-2 px-5 md:px-0 w-full md:w-fit items-start">
         {/* Searchbar */}

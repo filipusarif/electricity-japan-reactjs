@@ -6,37 +6,45 @@ interface PreloaderProps {
 }
 
 export default function Preloader({ onFinish }: PreloaderProps) {
-  const screenRef = useRef<HTMLDivElement>(null);   
-  const textWrapRef = useRef<HTMLHeadingElement>(null); 
+  const screenRef = useRef<HTMLDivElement>(null);
+  const textWrapRef = useRef<HTMLHeadingElement>(null);
 
-  const text = "Predicting Future Energy Consumption"; 
+  const text = "Predicting Future Energy Consumption";
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const innerWords = gsap.utils.toArray<HTMLElement>("[data-word-inner]");
+    const innerWords = gsap.utils.toArray<HTMLElement>("[data-word-inner]");
 
-      const tl = gsap.timeline();
+    const tl = gsap.timeline({
+      onComplete: onFinish, // selesai semua baru panggil
+    });
 
-      tl.set(innerWords, { yPercent: 120, opacity: 1 });
+    // posisi awal
+    tl.set(innerWords, { yPercent: 120, opacity: 1 });
 
-      tl.to(innerWords, {
-        yPercent: 0,
-        duration: 0.55,
-        ease: "power3.out",
-        stagger: 0.15, 
-      });
+    // animasi masuk per kata
+    tl.to(innerWords, {
+      yPercent: 0,
+      duration: 0.55,
+      ease: "power3.out",
+      stagger: 0.15,
+    });
 
-      tl.to({}, { duration: 0.6 });
+    // jeda biar user sempat baca
+    tl.to({}, { duration: 1 });
 
-      tl.to(screenRef.current, {
-        yPercent: -100,
-        duration: 1,
-        ease: "power4.inOut",
-        onComplete: onFinish,
-      });
-    }, textWrapRef);
+    // fade out teks biar halus
+    tl.to(innerWords, {
+      opacity: 0,
+      duration: 0.5,
+      ease: "power2.out",
+    });
 
-    return () => ctx.revert();
+    // transisi keluar layar
+    tl.to(screenRef.current, {
+      yPercent: -100,
+      duration: 1,
+      ease: "power4.inOut",
+    });
   }, [onFinish]);
 
   return (
@@ -50,10 +58,7 @@ export default function Preloader({ onFinish }: PreloaderProps) {
       >
         {text.split(" ").map((word, i) => (
           <span key={i} className="relative inline-block overflow-hidden">
-            <span
-              data-word-inner
-              className="inline-block will-change-transform"
-            >
+            <span data-word-inner className="inline-block will-change-transform">
               {word}
             </span>
           </span>

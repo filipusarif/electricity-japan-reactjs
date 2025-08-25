@@ -3,7 +3,6 @@ import Papa from "papaparse";
 import type { ParseResult } from "papaparse";
 import {
   Line,
-  Scatter,
   Bar
 } from "react-chartjs-2";
 import {
@@ -46,7 +45,6 @@ interface ModalAboutProps {
 export default function ModalAbout({ onClose }: ModalAboutProps) {
   const [data, setData] = useState<ElectricityData[]>([]);
   const [region, setRegion] = useState<string>("");
-  const [sector, setSector] = useState<"Residential" | "Industrial">("Residential");
 
   useEffect(() => {
     Papa.parse<ElectricityData>("/data/electricity_data.csv", {
@@ -82,22 +80,6 @@ export default function ModalAbout({ onClose }: ModalAboutProps) {
         data: filteredRegion.map(d => d["Con. Ind"]),
         borderColor: "rgb(255, 99, 132)",
         backgroundColor: "rgba(255, 99, 132, 0.5)",
-      }
-    ]
-  };
-
-  // --- Data untuk grafik 2 (Scatter) ---
-  const priceCol = sector === "Residential" ? "N. Price. Res" : "N. Price. Ind";
-  const consumptionCol = sector === "Residential" ? "Con. Res" : "Con. Ind";
-  const scatterData = {
-    datasets: [
-      {
-        label: sector,
-        data: data.map(d => ({
-          x: d[priceCol],
-          y: d[consumptionCol]
-        })),
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
       }
     ]
   };

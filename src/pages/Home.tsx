@@ -8,6 +8,8 @@ import SaveMapInstance from "../components/atoms/saveMapsInstance";
 import Tooltip from "../components/atoms/tooltip";
 import Modal from "../components/molecules/modal";
 import MapEventHandler from "../components/atoms/mapEventHandler";
+import ModalAbout from "../components/molecules/modal/about";
+import Preloader from "../components/layouts/preloader";
 
 export default function Home() {
   const [geoData, setGeoData] = useState<any>(null);
@@ -19,6 +21,8 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const mapRef = useRef<any>(null);
   const [highlightIndex, setHighlightIndex] = useState<number>(-1);
+  const [popupModal, setPopupModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/jp.json")
@@ -31,6 +35,10 @@ export default function Home() {
           )
         };
         setGeoData(filtered);
+
+        setTimeout(() => {
+          // 
+        }, 2000);
       });
   }, []);
 
@@ -115,64 +123,67 @@ export default function Home() {
     setHighlightIndex(-1);
   };
 
-
+  if (loading) {
+    return <Preloader onFinish={() => setLoading(false)} />;
+  }
 
 
   return (
     <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
-      {/* Searchbar */}
-      <div style={{
-        position: "absolute",
-        top: "20px",
-        left: "20px",
-        zIndex: 1000,
-        background: "rgba(255,255,255,0.7)",
-        backdropFilter: "blur(8px)",
-        paddingTop: "4px",
-        paddingBottom: "4px",
-        paddingInline: "7px",
-        borderRadius: "8px",
-      }}
-      
-      className="text-slate-800 w-[90%] md:w-[300px]">
-        <input
-          type="text"
-          placeholder="Search Region ..."
-          value={search}
-          onChange={handleSearchChange}
-          style={{
-            width: "100%",
-            padding: "6px",
-            border: "none",
-            outline: "none",
-            background: "transparent"
-          }}
-          className="text-sm border border-gray-300"
-          onKeyDown={handleKeyDown}
-        />
-        {suggestions.length > 0 && (
-          <ul style={{
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            background: "rgba(255,255,255,0.9)",
-            borderRadius: "6px",
-            marginTop: "4px",
-            overflow: "hidden"
-          }}>
-            {suggestions.map((feature: any, i: number) => (
-              <div
-                key={`${feature.properties.name}-${i}`}
-                className={`cursor-pointer text-sm ${i === highlightIndex ? "bg-slate-100" : ""}`}
-                onClick={() => handleSuggestionClick(feature)}
-              >
-                {feature.properties.name}
-              </div>
-            ))}
-          </ul>
-        )}
-      </div>
+      <div className="absolute top-[10px] md:top-[20px] md:left-[20px] z-500 flex gap-2 px-5 md:px-0 w-full md:w-fit items-start">
+        {/* Searchbar */}
+        <div style={{
+          background: "rgba(255,255,255,0.7)",
+          backdropFilter: "blur(8px)",
+          paddingTop: "4px",
+          paddingBottom: "4px",
+          paddingInline: "7px",
+          borderRadius: "8px",
+        }}
+        className="text-slate-800 w-full md:w-[250px] bg-red-500">
+          <input
+            type="text"
+            placeholder="Search Region ..."
+            value={search}
+            onChange={handleSearchChange}
+            style={{
+              width: "100%",
+              padding: "6px",
+              border: "none",
+              outline: "none",
+              background: "transparent"
+            }}
+            className="text-sm border border-gray-300"
+            onKeyDown={handleKeyDown}
+          />
+          {suggestions.length > 0 && (
+            <ul style={{
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              background: "rgba(255,255,255,0.9)",
+              borderRadius: "6px",
+              marginTop: "4px",
+              overflow: "hidden"
+            }}>
+              {suggestions.map((feature: any, i: number) => (
+                <div
+                  key={`${feature.properties.name}-${i}`}
+                  className={`cursor-pointer text-sm ${i === highlightIndex ? "bg-slate-100" : ""}`}
+                  onClick={() => handleSuggestionClick(feature)}
+                >
+                  {feature.properties.name}
+                </div>
+              ))}
+            </ul>
+          )}
+        </div>
 
+        <button
+        onClick={() => {setPopupModal(true)} }
+        className=" bg-white/60 backdrop-blur-md rounded-lg shadow-lg px-[12px] py-[10px] text-sm text-slate-800 font-medium">About</button>
+
+      </div>
 
       {/* Map container */}
       <MapContainer
@@ -214,6 +225,8 @@ export default function Home() {
           mapping={mapping}
         />
       )}
+
+      {popupModal && <ModalAbout onClose={() => setPopupModal(false)} />}
     </div>
   );
 }
